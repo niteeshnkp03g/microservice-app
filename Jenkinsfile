@@ -1,5 +1,10 @@
+
 pipeline {
   agent any
+
+  tools {
+    maven 'maven-3.9.6'   // 👈 Tells Jenkins to use the correct Maven
+  }
 
   stages {
     stage('Checkout') {
@@ -27,4 +32,3 @@ pipeline {
     }
   }
 }
-
