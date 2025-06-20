@@ -1,57 +1,11 @@
-pipeline {
-  agent any
 
-  tools {
-    maven 'maven-3.9.6'
-  }
+FROM openjdk:21-slim
 
-  environment {
-    DOCKER_IMAGE = 'dockerp241/microservice-app'
-  }
+WORKDIR /app
 
-  stages {
-    stage('Checkout') {
-      steps {
-        git branch: 'main', url: 'https://github.com/niteeshnkp03g/microservice-app.git'
-      }
-    }
+COPY target/microservice-app-1.0-SNAPSHOT.jar app.jar
 
-    stage('Build with Maven') {
-      steps {
-        dir('microservice-app') {
-          sh 'mvn clean package'
-        }
-      }
-    }
+EXPOSE 8080
 
-    stage('List JAR') {
-      steps {
-        dir('microservice-app') {
-          sh 'ls -lh target'
-        }
-      }
-    }
-
-    stage('Docker Build') {
-      steps {
-        dir('microservice-app') {
-          sh 'docker build -t $DOCKER_IMAGE .'
-        }
-      }
-    }
-
-    stage('Docker Push to DockerHub') {
-      steps {
-        dir('microservice-app') {
-          withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-            sh '''
-              echo "$PASSWORD" | docker login -u "$USERNAME" --password-stdin
-              docker push $DOCKER_IMAGE
-            '''
-          }
-        }
-      }
-    }
-  }
-}
+ENTRYPOINT ["java", "-jar", "app.jar"]
 
