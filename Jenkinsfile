@@ -3,7 +3,11 @@ pipeline {
   agent any
 
   tools {
-    maven 'maven-3.9.6'   // 👈 Tells Jenkins to use the correct Maven
+    maven 'maven-3.9.6'
+  }
+
+  environment {
+    DOCKER_IMAGE = 'dockerp241/microservice-app'
   }
 
   stages {
@@ -21,14 +25,20 @@ pipeline {
 
     stage('Docker Build') {
       steps {
-        sh 'docker build -t microservice-app .'
+        sh 'docker build -t $DOCKER_IMAGE .'
       }
     }
 
-    stage('Docker Run') {
+    stage('Docker Push to DockerHub') {
       steps {
-        sh 'docker run -d --rm -p 8081:8080 microservice-app || true'
+        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+          sh '''
+            echo "$PASSWORD" | docker login -u "$USERNAME" --password-stdin
+            docker push $DOCKER_IMAGE
+          '''
+        }
       }
     }
   }
 }
+
